@@ -1,13 +1,5 @@
 #!/bin/sh
 
-# Validate required args.
-for var in KUBE_CONTEXT SERVICE_NAME; do
-  if [ -z "${!var}" ]; then
-      echo "$var ENV var is required"
-      exit 1
-  fi
-done
-
 kubectl config use-context ${KUBE_CONTEXT}
 
 # Defaults.
@@ -29,7 +21,7 @@ do
 done
 
 # Error if IP doesn't resolve before timout.
-if [ -z "$SERVICE_IP" ]; then
+if [ -z "$SERVICE_IP" ] ; then
     echo timed out in $TIME seconds
     exit 1
 fi
