@@ -5,24 +5,25 @@ kubectl config use-context ${KUBE_CONTEXT}
 # Defaults.
 PORT=${PORT:-80}
 NAMESPACE=${NAMESPACE:-default}
-TIMEOUT=${TIMEOUT:=60}
 WAIT=${WAIT:-10}
+RETRIES=${RETRIES:=10}
 SCHEME=${SCHEME:-http}
 
 # Wait for Load Balancer IP to resolve.
 # @todo Support other Service types.
-TIME=$((SECONDS+$TIMEOUT))
 SERVICE_IP=""
-while [ -z "$SERVICE_IP" ] && [ "$SECONDS" -lt "$TIME" ]
+TRIED=0
+while [ -z "$SERVICE_IP" ] && [ "$TRIED" -lt "$RETRIES" ]
 do
     echo "Service IP is still pending. Waiting..."
     SERVICE_IP=$(kubectl get svc --namespace ${NAMESPACE} ${SERVICE_NAME} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     sleep $WAIT
+    TRIED=$(($TRIED+1))
 done
 
 # Error if IP doesn't resolve before timout.
 if [ -z "$SERVICE_IP" ] ; then
-    echo timed out in $TIME seconds
+    echo "Service IP didn't resolve in $RETRIES retries"
     exit 1
 fi
 
